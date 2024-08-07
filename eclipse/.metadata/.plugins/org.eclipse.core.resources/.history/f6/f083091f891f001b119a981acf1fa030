@@ -1,0 +1,171 @@
+package me.xatzdevelopments.modules.movement;
+
+import org.lwjgl.input.Keyboard;
+
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventMotion;
+import me.xatzdevelopments.modules.Module;
+import me.xatzdevelopments.settings.BooleanSetting;
+import me.xatzdevelopments.settings.ModeSetting;
+import me.xatzdevelopments.settings.NumberSetting;
+import me.xatzdevelopments.util.Stopwatch;
+import net.minecraft.network.play.client.C03PacketPlayer;
+
+public class Fly extends Module {
+	public ModeSetting flymode = new ModeSetting("Fly Mode", "Vanilla", "Vanilla", "Watchdog Fast");
+	public NumberSetting Speed = new NumberSetting("Speed", 3, 1, 5, 1);
+	public NumberSetting timerSpeed = new NumberSetting("Timer Speed", 1, 1, 3, 1);
+	public BooleanSetting damage = new BooleanSetting("Damage", true);
+	private double posy;
+	public static boolean overridenotification = false;
+	private boolean idk = false;
+	private Stopwatch flyStopwatch = new Stopwatch();
+	public Fly() {
+		super("Fly", Keyboard.KEY_F, Category.MOVEMENT);
+		this.addSettings(Speed, flymode, timerSpeed, damage);
+	}
+	
+	
+	
+	public void onDisable() {
+		mc.timer.timerSpeed = 1;
+		boolean idk = false;
+		mc.thePlayer.capabilities.isFlying = false;
+		overridenotification = false;
+		mc.thePlayer.capabilities.setFlySpeed(0.05f);
+	}
+	
+	public void onEnable() {
+		//mc.timer.timerSpeed = 0.1f;
+		this.flyStopwatch.reset();
+		this.posy = mc.thePlayer.posY;
+		//boolean idk = false;
+		if(this.flymode.getMode() == "Watchdog Fast") {
+			boolean ojojoj = false;
+			if(this.damage.isEnabled()) {
+			for (int index = 0; index < 70; index++) {
+				if(index > 48) {
+					idk = true;
+				}
+	            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY + 0.06D, mc.thePlayer.posZ, false));
+	            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, false));
+	        }
+	        mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY + 0.1D, mc.thePlayer.posZ, false));
+			} else {
+				//mc.thePlayer.cameraYaw = 5;
+				if(mc.thePlayer.onGround)
+				mc.thePlayer.jump(false);
+			}
+	        if(mc.thePlayer.onGround && ojojoj) {
+				//mc.thePlayer.jump();
+				ojojoj = !ojojoj;
+			}
+		}
+		this.posy = mc.thePlayer.posY;
+		if(this.flymode.getMode() == "Watchdog Fast") {
+		overridenotification = true;
+		} else {
+			this.overridenotification = false;
+		}
+		
+		if(idk) {
+			
+		}
+	}
+	
+
+
+	public void onEvent(Event e) {
+		if(e instanceof EventMotion) {
+			if(e.isPre()) {
+				if(this.flymode.getMode() == "Watchdog Fast") {
+					if(mc.thePlayer.moveForward != 0 || mc.thePlayer.moveStrafing != 0) {
+					mc.thePlayer.cameraYaw = 0.105f;
+					}
+				}
+				if(this.flymode.getMode().equals("Vanilla")) {
+				mc.thePlayer.capabilities.isFlying = true;
+				mc.thePlayer.capabilities.setFlySpeed(0.05f * (float)this.Speed.getValue());
+				//mc.thePlayer.capabilities.setFlySpeed(0.5F);
+					//mc.thePlayer.motionY = 0;
+					//mc.thePlayer.setSpeed(0.1f);
+				}
+				if(this.flymode.getMode().equals("NCP")) {
+					double y;
+		            double y1;
+		            mc.thePlayer.motionY = 0;
+		            if(mc.thePlayer.ticksExisted % 3 == 0) {
+		                y = mc.thePlayer.posY - 1.0E-10D;
+		                mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, y, mc.thePlayer.posZ, true));
+		                mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, y, mc.thePlayer.posZ, false));
+		            }
+		            y1 = mc.thePlayer.posY + 1.0E-10D;
+		            mc.thePlayer.onGround = true;
+		            mc.getNetHandler().addToSendQueue(new C03PacketPlayer(true));
+		            mc.thePlayer.setPosition(mc.thePlayer.posX, y1, mc.thePlayer.posZ);
+				}
+				if(this.flymode.getMode().equals("Watchdog Fast")) {
+					if(mc.thePlayer.hurtTime > 0) {
+						if(this.flyStopwatch.elapsed(25L)) {
+							if(!this.damage.isEnabled()) {
+								//mc.thePlayer.cameraYaw = 4.5f;
+							}
+							if(this.damage.isEnabled()) {
+							this.mc.timer.timerSpeed = 0.1f;
+							if(!this.flyStopwatch.elapsed(123L)) {
+								mc.thePlayer.jump(false);
+							}
+							}if(!this.damage.isEnabled()) {
+							if(this.flyStopwatch.getElapsedTime() <= 500L) {
+							mc.thePlayer.jump(false);
+							}
+							} else {
+								mc.thePlayer.jump(false);
+							}
+						} else {
+							//mc.thePlayer.cameraYaw = 0.105f;
+						}
+					}
+					overridenotification = false;
+					//mc.thePlayer.posY = this.posy + 0.5D;
+					if(this.flyStopwatch.elapsed(123L)) {
+						if(!(this.flyStopwatch.elapsed(923L))) {
+							mc.timer.timerSpeed = (float)this.timerSpeed.getValue();
+						} else {
+					mc.timer.timerSpeed = 1f;
+						}
+					}
+					//mc.thePlayer.jump();
+					if(this.damage.isEnabled()) {
+					if(!mc.gameSettings.keyBindJump.getIsKeyPressed() && !mc.gameSettings.keyBindJump.getIsKeyPressed()) {
+						if(this.flyStopwatch.elapsed(123L)) {
+					mc.thePlayer.motionY = 0;
+						}
+					}
+					} else {
+						mc.thePlayer.motionY = 0;
+					}
+					/*if(mc.gameSettings.keyBindJump.getIsKeyPressed()) {
+						mc.thePlayer.motionY = 0.6 * this.Speed.getValue();
+					}
+					if(mc.gameSettings.keyBindJump.getIsKeyPressed()) {
+						mc.thePlayer.motionY = -0.6 * this.Speed.getValue();
+					}*/
+					if(mc.thePlayer.isMovingXZ() && mc.gameSettings.keyBindForward.getIsKeyPressed() || mc.gameSettings.keyBindBack.getIsKeyPressed() || mc.gameSettings.keyBindLeft.getIsKeyPressed() || mc.gameSettings.keyBindRight.getIsKeyPressed()){
+						float speed = ((0.2f * (float)this.Speed.getValue() * 3) * 1) / this.flyStopwatch.getElapsedTime();
+						if(speed < 0.2f) {
+							speed = 0.2f;
+						}
+						mc.thePlayer.setSpeed(speed);
+						if(mc.thePlayer.getSpeed() < (0.2f * (float)this.Speed.getValue() * 3) && this.flyStopwatch.elapsed(250L)) {
+							mc.thePlayer.setSpeed(0f);
+						}
+					} else {
+						mc.thePlayer.setSpeed(0F);	
+					}
+				}
+			}
+		}
+	}
+	
+}

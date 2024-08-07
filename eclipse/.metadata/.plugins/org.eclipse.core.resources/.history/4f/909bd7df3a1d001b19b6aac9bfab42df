@@ -1,0 +1,41 @@
+package me.xatzdevelopments.modules.movement;
+
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventUpdate;
+import me.xatzdevelopments.modules.Module;
+import me.xatzdevelopments.util.MovementUtils;
+
+public class Speed extends Module{
+
+	public Speed() {
+		super("Speed", 0, Category.MOVEMENT);
+	}
+	
+	public void onEnable() {
+		
+	}
+	
+	public void onDisable() {
+		
+	}
+
+	public void onEvent(Event e) {
+		if(e instanceof EventUpdate) {
+			if(e.isPre()) {
+				double speed;
+				if(mc.thePlayer.isMovingXZ() && mc.gameSettings.keyBindForward.getIsKeyPressed() || mc.gameSettings.keyBindBack.getIsKeyPressed() || mc.gameSettings.keyBindLeft.getIsKeyPressed() || mc.gameSettings.keyBindRight.getIsKeyPressed()) {
+					//mc.thePlayer.setSpeed(0.5f);
+					mc.thePlayer.setSprinting(true);
+					mc.timer.timerSpeed = 1.0f;
+					speed = 1.15;
+					speed *= 1.03;
+					MovementUtils.setSpeed(speed);
+					mc.thePlayer.setSpeed((float)speed);
+					if(mc.thePlayer.onGround) {
+						mc.thePlayer.motionY = 0.41999998688698 / 2;
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,167 @@
+package me.xatzdevelopments.modules.combat;
+
+import java.awt.Color;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.lwjgl.input.Keyboard;
+
+import me.xatzdevelopments.Client;
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventMotion;
+import me.xatzdevelopments.events.listeners.EventRenderGUI;
+import me.xatzdevelopments.events.listeners.EventUpdate;
+import me.xatzdevelopments.modules.Module;
+import me.xatzdevelopments.modules.render.TargetHUDMaker;
+import me.xatzdevelopments.settings.BooleanSetting;
+import me.xatzdevelopments.settings.ModeSetting;
+import me.xatzdevelopments.settings.NumberSetting;
+import me.xatzdevelopments.util.AnimationUtils;
+import me.xatzdevelopments.util.Timer;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C02PacketUseEntity.Action;
+import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
+
+public class KillAura extends Module {
+	
+	
+	public Timer timer = new Timer();
+	public NumberSetting range = new NumberSetting("Range", 4, 1, 6, 0.1);
+	public NumberSetting aps = new NumberSetting("APS", 10, 1, 20, 1);
+	public BooleanSetting noSwing = new BooleanSetting("NoSwing", false);
+	public ModeSetting test = new ModeSetting("Test", "One", "One", "Two", "Three");
+	public static String health = "";
+	public static double maxHealth = 0;
+	public static String name = "";
+	public static String distance = "";
+	public static double health2 = 0;
+	public static EntityLivingBase target;
+	
+	public KillAura() {
+		super("KillAura", Keyboard.KEY_G, Category.COMBAT);
+		this.addSettings(range, aps, noSwing, test);
+	}
+	
+	public void onEnable() {
+		
+	}
+	
+	public void onDisable() {
+		
+	}
+
+
+	public void onEvent(Event e) {
+		if(e instanceof EventMotion) {
+			if(e.isPre()) {
+				
+				EventMotion event = (EventMotion)e;
+				
+				List<EntityLivingBase> targets = (List<EntityLivingBase>) mc.theWorld.loadedEntityList.stream().filter(EntityLivingBase.class::isInstance).collect(Collectors.toList());
+				
+				targets = targets.stream().filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < range.getValue() && entity != mc.thePlayer && !entity.isDead && entity.getHealth() > 0).collect(Collectors.toList());
+				
+				targets.sort(Comparator.comparingDouble(entity -> ((EntityLivingBase)entity).getDistanceToEntity(mc.thePlayer)));
+				
+				//Players filter
+				//targets = targets.stream().filter(EntityPlayer.class::isInstance).collect(Collectors.toList());
+				//Animals filter
+				//targets = targets.stream().filter(EntityAnimal.class::isInstance).collect(Collectors.toList());
+				//Hostile filter
+				//targets = targets.stream().filter(EntityMob.class::isInstance).collect(Collectors.toList());
+				
+				if(!targets.isEmpty()) {
+					TargetHUDMaker thud = new TargetHUDMaker();
+					thud.animationStopwatch.reset();
+					EntityLivingBase target = targets.get(0);
+					String healthstr = String.valueOf((float)((int)target.getHealth()) / 2.0F);
+					this.health = "Target Health: " + healthstr;
+					this.name = "Target Name: " + target.getName();
+					this.health2 = target.getHealth();
+					this.distance = "Distance: " + (double)Math.round(mc.thePlayer.getDistanceToEntity(target) * 100) / 100;
+					event.setYaw(getRotations(target)[0]);
+					event.setPitch(getRotations(target)[1]);
+					mc.thePlayer.renderYawOffset = event.getYaw();
+					mc.thePlayer.rotationYawHead = event.getYaw();
+					
+					if(timer.hasTimeElapsed((long) (1000/aps.getValue()), true)) {
+					 if(noSwing.isEnabled()) {
+						mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
+					 }else {
+					    mc.thePlayer.swingItem();
+					 }
+					mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, Action.ATTACK));
+					this.target = target;
+					this.maxHealth = target.getMaxHealth();
+					
+					//mc.fontRendererObj.drawString(KillAura.health, thud.x2 + 40.0F + 46.0F - (float)mc.fontRendererObj.getStringWidth(KillAura.health) / 2.0F, thud.y + 16.0F, -1);
+			        mc.fontRendererObj.drawStringwithShadow(this.target.getName(), thud.x2 + 40.0F, thud.y + 2.0F, -1);
+					}
+				} else {
+					
+					TargetHUDMaker thud = new TargetHUDMaker();
+					thud.animationStopwatch.reset();
+					//mc.fontRendererObj.drawString(KillAura.health, thud.x + 40.0F + 46.0F - (float)mc.fontRendererObj.getStringWidth(KillAura.health) / 2.0F, thud.y + 16.0F, -1);
+			        mc.fontRendererObj.drawString(KillAura.name, thud.x2 + 40.0F, thud.y + 2.0F, -1);
+			        
+					this.health = "Target Health: 0.0";
+					this.name = "Target Name: Unknown";
+					this.distance = "Distance: 0.0";
+					this.target = null;
+					this.maxHealth = 0;
+					this.health2 = 0;
+				}
+			
+				
+			}
+			
+			
+		}
+		if(e instanceof EventRenderGUI) {
+			if(Client.getModuleByName("TargetHUD").isEnabled()) {TargetHUDMaker thud = new TargetHUDMaker();
+			final Color COLOR = new Color(0, 0, 0, 180);
+			Gui.drawRect((double)thud.x, (double)thud.y, (double)(thud.x + 140.0F), (double)(thud.y + 40.0F), COLOR.getRGB());
+	        Gui.drawRect((double)(thud.x + 40.0F), (double)(thud.y + 45.0F), (double)(thud.x + 40.0F) + thud.healthBarWidth, (double)(thud.y + 25.0F), thud.healthColor);
+			mc.fontRendererObj.drawString(KillAura.health, thud.x2 - 1f + 40.0F + 46.0F - (float)mc.fontRendererObj.getStringWidth(KillAura.health) / 2.0F, thud.y + 16.0F, thud.healthColor);
+			//Gui.drawRect((double)thud.x, (double)thud.y, (double)(thud.x + 140.0F), (double)(thud.y + 40.0F), COLOR.getRGB());
+	        //Gui.drawRect((double)(thud.x + 40.0F), (double)(thud.y + 45.0F), (double)(thud.x + 40.0F + KillAura.health2) + thud.healthBarWidth, (double)(thud.y - 40), -1);
+	        mc.fontRendererObj.drawString(KillAura.name, thud.x2 + 40.0F, thud.y + 2.0F, thud.healthColor);
+	        mc.fontRendererObj.drawString(KillAura.distance, thud.x2 + 40.0F, thud.y + 30.0F, thud.healthColor);
+				//mc.fontRendererObj.drawString(this.name, 165, 50, -1);
+				//mc.fontRendererObj.drawString(this.health, 165, 40, -1);
+				//TargetHUDMaker hud = new TargetHUDMaker();
+				//hud.makeTargetHUD();
+			}
+			if(this.test.getMode().equals("Two")) {
+				//mc.fontRendererObj.drawString(this.health, 50, 50, -1);
+			}
+		}
+	}
+	
+	public float[] getRotations(Entity e) {
+		double deltaX = e.posX + (e.posX - e.lastTickPosX) - mc.thePlayer.posX,
+			   deltaY = e.posY - 3.5 + e.getEyeHeight() - mc.thePlayer.posY + mc.thePlayer.getEyeHeight(),
+			   deltaZ = e.posZ + (e.posZ - e.lastTickPosZ) - mc.thePlayer.posZ,
+			   distance = Math.sqrt(Math.pow(deltaX, 2) + (Math.pow(deltaZ, 2)));
+		
+		float yaw = (float) Math.toDegrees(-Math.atan(deltaX / deltaZ)),
+			  pitch = (float) -Math.toDegrees(Math.atan(deltaY / distance));
+		
+		if(deltaX < 0 && deltaZ < 0) {
+			yaw = (float) (90 + Math.toDegrees(Math.atan(deltaZ / deltaX)));
+		}else if(deltaX > 0 && deltaZ > 0) {
+			yaw = (float) (-90 + Math.toDegrees(Math.atan(deltaZ / deltaX)));
+		}
+		
+		return new float[] {yaw, pitch};
+	}
+	
+}

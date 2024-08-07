@@ -1,0 +1,204 @@
+package me.xatzdevelopments;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.lwjgl.opengl.Display;
+
+import com.thealtening.auth.TheAlteningAuthentication;
+
+import me.xatzdevelopments.commands.chatCommands.CommandManager;
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventKey;
+import me.xatzdevelopments.modules.Module;
+import me.xatzdevelopments.modules.Module.Category;
+import me.xatzdevelopments.modules.combat.*;
+import me.xatzdevelopments.modules.movement.*;
+import me.xatzdevelopments.modules.player.*;
+import me.xatzdevelopments.modules.render.*;
+import me.xatzdevelopments.ui.HUD;
+import me.xatzdevelopments.util.FileManager;
+import me.xatzdevelopments.util.Timer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Session;
+
+
+public class Client {
+
+	public static String name = "Xatz", version = "1", author = "Xatz Dev Team";
+	public static CopyOnWriteArrayList<Module> modules = new CopyOnWriteArrayList<Module>();
+	public static HUD hud = new HUD();
+	public static TheAlteningAuthentication theAlteningAuth;
+	public static final Timer saveTimer = new Timer();
+	private static FileManager fileManager;
+	public static String USER = "User";
+	public static String alteningToken;
+	public String username;
+	public static CommandManager commandManager = new CommandManager();
+	
+// Taskbar title related	
+	public static void reloadModules() {
+		modules.removeAll(modules);
+				//------------------Combat--------------------	
+				modules.add(new KillAura());
+				//------------------Movement--------------------
+				modules.add(new Fly());
+				modules.add(new AutoSprint());
+				modules.add(new Speed());
+				modules.add(new NoSlow());
+				//------------------Player--------------------	
+				modules.add(new Commands());
+				modules.add(new NoFall());
+				//------------------Render--------------------	
+				modules.add(new FullBright());
+				modules.add(new TargetHUD());
+				modules.add(new TabGUI());
+				modules.add(new ActiveMods());
+				modules.add(new ClickGuiModule());
+				modules.add(new Camera());
+				modules.add(new Animations());
+				modules.add(new Radar());
+				modules.add(new Notifications());
+	}
+
+	public static void startup() {
+		System.out.println("Starting " + name + " v" + version);
+		Display.setTitle(name + " v" + version);
+
+// Loading the modules
+
+		
+//------------------Combat--------------------	
+		modules.add(new KillAura());
+//------------------Movement--------------------
+		modules.add(new Fly());
+		modules.add(new AutoSprint());
+		modules.add(new Speed());
+		modules.add(new NoSlow());
+//------------------Player--------------------	
+		modules.add(new Commands());
+		modules.add(new NoFall());
+//------------------Render--------------------	
+		modules.add(new FullBright());
+		modules.add(new TargetHUD());
+		modules.add(new TabGUI());
+		modules.add(new ActiveMods());
+		modules.add(new ClickGuiModule());
+		modules.add(new Camera());
+		modules.add(new Animations());
+		modules.add(new Radar());
+		modules.add(new Notifications());
+		
+		
+// File manager related	
+
+		fileManager = new FileManager();
+		try {
+			fileManager.load();
+		} catch (IOException e) {
+			System.out.println("File error!");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		
+		Client.getFileMananger().loadSettings();
+		System.out.println("Loading Settings");
+		Client.getFileMananger().loadKeybinds();
+		System.out.println("Loading Keybinds");
+	}
+	
+	public static void onEvent(Event e) {
+		for(Module m : modules) {
+			if(!m.toggled) 
+				continue;
+			
+			m.onEvent(e);
+		}
+
+// Saving settings and keybinds after a certain time
+
+		if(saveTimer.hasTimeElapsed(100000, true)) {
+			Client.getFileMananger().saveSettings();
+			System.out.println("Saving Settings");
+			Client.getFileMananger().saveKeybinds();
+			System.out.println("Saving Keybinds");
+		}
+	}
+	
+
+	
+		
+	public static void keyPress(int key) {
+		Client.onEvent(new EventKey(key));
+		for(Module m: modules) {
+			if(m.getKey() == key) {
+				m.toggle();
+			}
+		}
+	}
+	
+	public static List<Module> getModulesByCategory(Category c){
+		List<Module> modules = new ArrayList<Module>();
+		
+		for(Module m : Client.modules) {
+			if(m.category == c) 
+				modules.add(m);
+			}
+			
+			return modules;
+		}
+	
+	public static Module getModuleByName(String name) {
+		List<Module> modules = new ArrayList<Module>();
+		
+		for(Module m : Client.modules) {
+			if(m.name == name) 
+				return m;
+			}
+			
+			
+		
+		System.err.println("Module: " + name + " was not found");
+		return null;
+	}
+	
+	 public static Module getModuleByNumber(final int Number) {
+	        int ModuleNumber = 0;
+	        for (final Module m : Client.modules) {
+	            if (ModuleNumber == Number) {
+	                return m;
+	            }
+	            ++ModuleNumber;
+	        }
+	        return null;
+	    }
+	
+	public static String getAlteningToken() {
+        return alteningToken;
+    }
+
+    public void setAlteningToken(String alteningToken) {
+        this.alteningToken = alteningToken;
+    }
+    
+    public static FileManager getFileMananger() {
+		return fileManager;
+	}
+
+// Saves Settings and Keybinds on close  
+
+    public static void onMCClose() {
+    		System.out.println("Saving Settings");
+			Client.getFileMananger().saveSettings();
+			Client.getFileMananger().saveKeybinds();
+			System.out.println("Saving Keybinds");
+		
+	}
+    
+	
+	
+}
+	
+

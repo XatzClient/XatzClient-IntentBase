@@ -1,0 +1,11 @@
+name: ViaBackwards
+version: 3.3.0-20w45a
+description: Allow older Minecraft versions to connect to a newer server version.
+main: nl.matsv.viabackwards.BukkitPlugin
+api-version: 1.13
+
+authors: [Matsv, KennyTV, Gerrygames, creeper123123321, ForceUpdate1]
+website: https://github.com/ViaVersion/ViaBackwards/viabackwards-bukkit
+
+load: STARTUP
+depend: [ViaVersion]

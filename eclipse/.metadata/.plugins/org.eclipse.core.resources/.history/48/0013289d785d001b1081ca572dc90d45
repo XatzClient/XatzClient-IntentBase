@@ -1,0 +1,29 @@
+package me.xatzdevelopments.modules.movement;
+
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventPacket;
+import me.xatzdevelopments.modules.Module;
+import net.minecraft.network.play.client.C03PacketPlayer;
+
+public class NoRotationsSet
+extends Module {
+    @Override
+    public void onEnable() {
+    	
+    }
+
+    public NoRotationsSet() {
+        super("NoRotationSet", 0, Module.Category.PLAYER, "Be a free steve, move ur body how you want.");
+    }
+
+    @Override
+    public void onDisable() {
+    }
+
+    @Override
+    public void onEvent(Event event) {
+        if (event instanceof EventPacket && event.isPre() && ((EventPacket)event).getPacket() instanceof C03PacketPlayer.C05PacketPlayerLook) {
+            event.setCancelled(true);
+        }
+    }
+}

@@ -1,0 +1,66 @@
+package me.xatzdevelopments.modules.movement;
+
+import org.lwjgl.input.Keyboard;
+
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventUpdate;
+import me.xatzdevelopments.modules.Module;
+import me.xatzdevelopments.modules.Module.Category;
+import me.xatzdevelopments.settings.BooleanSetting;
+import me.xatzdevelopments.settings.ModeSetting;
+import net.minecraft.network.play.client.C03PacketPlayer;
+
+public class Fly2 extends Module {
+	
+	public BooleanSetting bobbing = new BooleanSetting("Bobbing", false);
+	public ModeSetting flymode = new ModeSetting("Fly Mode", "Redesky");
+	public Fly2() {
+		super("Fly2", Keyboard.KEY_U, Category.MOVEMENT, "Fly like a bird");
+		this.addSettings( bobbing, flymode );
+		this.addonText = this.flymode.getMode();
+	}
+	
+	@Override
+    public void onEvent(Event event) {
+        if (event instanceof EventUpdate) {
+            if (event.isPre()) {
+				if(this.bobbing.isEnabled()) {
+                    this.mc.thePlayer.cameraYaw = 0.1f;
+                }
+				if(this.flymode.getMode().equalsIgnoreCase("Redesky")) {
+                    this.mc.thePlayer.capabilities.isFlying = false;
+                    this.mc.thePlayer.motionY = 0.0;
+                    if (this.mc.gameSettings.keyBindForward.pressed) {
+                        this.mc.timer.timerSpeed = 1.0f;
+                        this.mc.thePlayer.motionX = 0.0;
+                        this.mc.thePlayer.motionZ = 0.0;
+                        this.mc.thePlayer.motionY = 0.0;
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX + this.mc.thePlayer.getLookVec().xCoord * 7.0, this.mc.thePlayer.posY + 0.7, this.mc.thePlayer.posZ + this.mc.thePlayer.getLookVec().zCoord * 7.0, false));
+                    }
+                    if (this.mc.gameSettings.keyBindBack.pressed) {
+                        this.mc.timer.timerSpeed = 1.0f;
+                        this.mc.thePlayer.motionX = 0.0;
+                        this.mc.thePlayer.motionZ = 0.0;
+                        this.mc.thePlayer.motionY = 0.0;
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX + this.mc.thePlayer.getLookVec().xCoord * -5.0, this.mc.thePlayer.posY + 0.7, this.mc.thePlayer.posZ + this.mc.thePlayer.getLookVec().zCoord * -5.0, false));
+                    }
+                    if (this.mc.gameSettings.keyBindJump.pressed) {
+                        this.mc.thePlayer.motionY = 0.0;
+                        this.mc.timer.timerSpeed = 0.6f;
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX, this.mc.thePlayer.posY + 10.0, this.mc.thePlayer.posZ, false));
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX, this.mc.thePlayer.posY - 10.0, this.mc.thePlayer.posZ, false));
+                    } else if (this.mc.gameSettings.keyBindSneak.pressed) {
+                        this.mc.thePlayer.motionY = 0.0;
+                        this.mc.timer.timerSpeed = 0.6f;
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX, this.mc.thePlayer.posY - 10.0, this.mc.thePlayer.posZ, false));
+                        this.mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.mc.thePlayer.posX, this.mc.thePlayer.posY + 10.0, this.mc.thePlayer.posZ, false));
+                    }
+                    this.mc.thePlayer.motionX = 0.0;
+                    this.mc.thePlayer.motionZ = 0.0;
+                }
+            }
+        }
+	}
+	}
+	
+	

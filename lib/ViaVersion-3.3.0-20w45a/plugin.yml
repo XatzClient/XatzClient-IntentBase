@@ -1,0 +1,13 @@
+name: ViaVersion
+main: us.myles.ViaVersion.ViaVersionPlugin
+authors: [_MylesC, creeper123123321, Gerrygames, KennyTV, Matsv]
+version: 3.3.0-20w45a
+description: Allow newer clients to join older server versions.
+load: postworld
+api-version: 1.13
+loadbefore: [ProtocolLib, ProxyPipe, SpigotLib, SkinRestorer]
+softdepend: [ProtocolSupport, PacketListenerApi]
+commands:
+  viaversion:
+    description: Shows ViaVersion Version and more.
+    aliases: [viaver, vvbukkit]

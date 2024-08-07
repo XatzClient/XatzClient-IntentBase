@@ -1,0 +1,1 @@
+{"id":"viaversion","name":"ViaVersion","version":"3.3.0-20w45a","description":"Allow newer Minecraft versions to connect to an older server version.","url":"https://viaversion.com","authors":["_MylesC","creeper123123321","Gerrygames","KennyTV","Matsv"],"dependencies":[],"main":"us.myles.ViaVersion.VelocityPlugin"}

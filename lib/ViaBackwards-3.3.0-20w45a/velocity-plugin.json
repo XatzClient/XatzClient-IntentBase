@@ -1,0 +1,1 @@
+{"id":"viabackwards","name":"ViaBackwards","version":"3.3.0-20w45a","description":"Allow older Minecraft versions to connect to a newer server version.","authors":["Matsv","KennyTV","Gerrygames","creeper123123321","ForceUpdate1"],"dependencies":[{"id":"viaversion","optional":false}],"main":"nl.matsv.viabackwards.VelocityPlugin"}

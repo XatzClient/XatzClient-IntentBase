@@ -1,0 +1,5 @@
+package me.xatzdevelopments.events.listeners;
+
+public class EventRenderNametag {
+
+}

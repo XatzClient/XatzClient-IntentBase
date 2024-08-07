@@ -1,0 +1,20 @@
+package me.xatzdevelopments.modules.render;
+
+import me.xatzdevelopments.modules.Module;
+
+public class Australia extends Module {
+    
+    public Australia() {
+        super("Australia", Keyboard.KEY_NONE, Category.RENDER);
+    }
+    
+    public void onEnable() {
+        super.onEnable();
+    }
+    
+    public void onDisable() {
+        mc.gameSettings.invertMouse = false;
+        super.onDisable();
+    }
+
+}

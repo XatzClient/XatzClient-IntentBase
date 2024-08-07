@@ -1,0 +1,39 @@
+package me.xatzdevelopments.modules.player;
+
+import me.xatzdevelopments.events.Event;
+import me.xatzdevelopments.events.listeners.EventReadPacket;
+import me.xatzdevelopments.modules.Module;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+
+public class NoRotationSet extends Module
+{
+    public NoRotationSet() {
+        super("NoRotationSet", 0, Category.PLAYER, "Prevents the server from rotating your head.");
+    }
+    
+    @Override
+    public void onEnable() {
+    }
+    
+    @Override
+    public void onDisable() {
+    }
+    
+    @Override
+    public void onEvent(final Event e) {
+        if (e instanceof EventReadPacket) {
+            if (mc.thePlayer == null || mc.theWorld == null)
+                return;
+        }
+        final Packet p = ((EventReadPacket)e).getPacket();
+            if (p instanceof S08PacketPlayerPosLook) {
+                S08PacketPlayerPosLook poslook = (S08PacketPlayerPosLook) p;
+                if (mc.thePlayer.rotationYaw != -180 && mc.thePlayer.rotationPitch != 0) {
+                    poslook.field_148936_d = mc.thePlayer.rotationYaw;
+                    poslook.field_148937_e = mc.thePlayer.rotationPitch;
+                }
+            }
+        }
+    }
+

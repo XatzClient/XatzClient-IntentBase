@@ -1,0 +1,16 @@
+[
+    {
+        "modid": "viaversion",
+        "name": "ViaVersion",
+        "version": "3.3.0-20w45a",
+        "description": "Allow newer clients to join older server versions.",
+        "authorList": [
+            "_MylesC",
+            "creeper123123321",
+            "Gerrygames",
+            "KennyTV",
+            "Matsv"
+        ],
+        "logoFile": "assets/viaversion/textures/logo.png"
+    }
+]
